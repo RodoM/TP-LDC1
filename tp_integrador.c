@@ -19,7 +19,8 @@ struct usuario
 // Lista de usuarios
 struct usuario usuarios[CANTIDAD_USUARIOS];
 
-// Carga los datos de los usuarios.
+// Carga los datos de los usuarios. Número de cuentas: 100[i] y contraseñas: contrasena[i], con i [0,9].
+// Ejemplo: Número de cuenta: 1000, contraseña: contrasena0.
 void cargar_usuarios()
 {
   for (int i = 0; i < CANTIDAD_USUARIOS; i++)
@@ -43,7 +44,8 @@ void limpiar_buffer()
 // la contraseña de la misma con un máximo de 3 intentos.
 int validar_cuenta(int numeroDeCuenta)
 {
-  for (int i = 0; i < CANTIDAD_USUARIOS; i++)
+  int i = 0;
+  while (i < CANTIDAD_USUARIOS)
   {
     if (usuarios[i].numeroDeCuenta == numeroDeCuenta)
     {
@@ -55,7 +57,8 @@ int validar_cuenta(int numeroDeCuenta)
       }
       else
       {
-        for (int intentos = 0; intentos < MAX_INTENTOS; intentos++)
+        int intentos = 0;
+        while (intentos < MAX_INTENTOS)
         {
           char contrasenaIngresada[15];
           printf("Ingrese su contraseña: ");
@@ -64,21 +67,23 @@ int validar_cuenta(int numeroDeCuenta)
           if (strcmp(contrasenaIngresada, usuarios[i].contrasena) == 0)
           {
             printf("-----------------------------------------\n");
-            printf("Bienvenido %s!\n\n", usuarios[i].nombre);
+            printf("Bienvenido %s!\n", usuarios[i].nombre);
             return i;
           }
           else
           {
             printf("Contraseña incorrecta, %d intentos restantes.\n", MAX_INTENTOS - (intentos + 1));
             printf("-----------------------------------------\n");
+            intentos++;
           }
         }
-        printf("Máximo número de intentos alcanzado. Su cuenta ha sido bloqueada por motivos de seguridad.\n");
+        printf("No se permiten más intentos. Su cuenta ha sido bloqueada, comuníquese con la entidad bancaria para su restablecimiento.\n");
         printf("-----------------------------------------\n");
         usuarios[i].estado = false;
         return -1;
       }
     }
+    i++;
   }
   printf("No existe una cuenta con ese número.\n");
   printf("-----------------------------------------\n");
@@ -106,6 +111,7 @@ int iniciar_sesion()
 // Deposita un monto de dinero en la cuenta del usuario.
 void depositar(int usuario)
 {
+  bool bandera = true;
   float monto;
   do
   {
@@ -114,35 +120,36 @@ void depositar(int usuario)
     {
       usuarios[usuario].saldo += monto;
       printf("Deposito realizado con éxito.\n");
-      break;
+      bandera = false;
     }
     else
     {
       printf("Monto inválido.\n");
       limpiar_buffer();
     }
-  } while (true);
+  } while (bandera);
 }
 
 // Extrae un monto de dinero en la cuenta del usuario.
 void extraer(int usuario)
 {
+  bool bandera = true;
   float monto;
   do
   {
     printf("Ingrese el monto de dinero a extraer: ");
-    if (scanf("%f", &monto) == 1 && monto <= usuarios[usuario].saldo)
+    if (scanf("%f", &monto) == 1 && monto <= usuarios[usuario].saldo && monto >= 0)
     {
       usuarios[usuario].saldo -= monto;
       printf("Extracción realizada con éxito.\n");
-      break;
+      bandera = false;
     }
     else
     {
       printf("Monto inválido.\n");
       limpiar_buffer();
     }
-  } while (true);
+  } while (bandera);
 }
 
 // Muestra el menú de acciones del cajero y solicita una opción.
@@ -150,10 +157,11 @@ void menu(int usuario)
 {
   int opcion, operaciones = 0;
   bool salir = false;
-  printf("1) Deposito.\n2) Extracción.\n3) Consultar Saldo.\n4) Mostrar la cantidad de operaciones realizadas y el saldo actual.\n5) Cerrar sesión\n");
 
   do
   {
+    printf("-----------------------------------------\n");
+    printf("1) Deposito.\n2) Extracción.\n3) Consultar Saldo.\n4) Mostrar la cantidad de operaciones realizadas y el saldo actual.\n5) Cerrar sesión\n");
     printf("-----------------------------------------\n");
     printf("Seleccione una opción: ");
     if (scanf("%d", &opcion) == 1)
@@ -177,7 +185,7 @@ void menu(int usuario)
         break;
       case 5:
         salir = true;
-        printf("Hasta pronto!\n");
+        printf("Hasta pronto!\n\n\n\n");
         break;
       default:
         printf("No existe esa opción.\n");
@@ -193,6 +201,7 @@ void menu(int usuario)
 
   if (operaciones == 10)
   {
+    printf("-----------------------------------------\n");
     printf("Llegó al límite de operaciones. Fin. Gracias!\n");
   }
 }
@@ -200,34 +209,21 @@ void menu(int usuario)
 // Inicia el programa preguntando si desea iniciar sesión o terminar.
 void iniciar_sistema()
 {
-  int opcion, usuario = -1;
+  int usuario = -1;
 
   cargar_usuarios();
 
   do
   {
     printf("-----------------------------------------\n");
-    printf("Bienvenido al sistema del banco.\n1) Iniciar sesión.\n2) Salir.\n");
+    printf("Bienvenido al sistema del banco.\n");
     printf("-----------------------------------------\n");
-    printf("Seleccione una opción: ");
-    if (scanf("%d", &opcion) == 1 && opcion == 1)
+    do
     {
-      do
-      {
-        usuario = iniciar_sesion();
-      } while (usuario < 0);
+      usuario = iniciar_sesion();
+    } while (usuario < 0);
 
-      menu(usuario);
-    }
-    else if (opcion == 2)
-    {
-      break;
-    }
-    else
-    {
-      printf("Opción inválida.\n");
-      limpiar_buffer();
-    }
+    menu(usuario);
   } while (true);
 }
 
